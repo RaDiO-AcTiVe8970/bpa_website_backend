@@ -1,9 +1,12 @@
-import { BadRequestException, Body, Controller, Get, HttpStatus, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpStatus, InternalServerErrorException, NotFoundException, Param, ParseIntPipe, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ContactDTO, FAQDTO, TestimonialDTO } from './app.dto';
 import { ContactEntity, FAQEntity, TestimonialEntity } from './app.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterError, diskStorage } from 'multer';
+import { Response } from 'express';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Controller("api/bpa/admin")
 export class AppController {
@@ -13,6 +16,8 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  /// CONTACT START///
 
   @Post("/addContact")
   async addContact(@Body() data:ContactDTO): Promise<ContactEntity> {
@@ -36,6 +41,9 @@ export class AppController {
     }
   }
 
+  /// CONTACT END///
+  /// FAQ START///
+
   @Post("/addFAQ")
   async addFAQ(@Body() data:FAQDTO): Promise<FAQEntity> {
     try{
@@ -58,9 +66,23 @@ export class AppController {
     }
   }
 
+  @Get("/getAllFAQsGroupedByCategory")
+  async getAllFAQsGroupedByCategory(): Promise<any[]> {
+    try{
+      const FAQs = await this.appService.getAllFAQsGroupedByCategory();
+      return FAQs;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
+
+  /// FAQ END///
+  /// TESTIMONIAL START///
+
   @Post('/addTestimonial')
   @UseInterceptors(
-    FileInterceptor('myfile', {
+    FileInterceptor('image', {
       fileFilter: (req, file, cb) => {
         if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/)) cb(null, true);
         else {
@@ -69,26 +91,22 @@ export class AppController {
       },
       limits: { fileSize: 5000000 }, // 5 MB
       storage: diskStorage({
-        destination: './assets/book_images',
+        destination: './assets/testimonials',
         filename: function (req, file, cb) {
           cb(null, Date.now() + file.originalname);
         },
       }),
     })
   )
-  async addTestimonial(
-    @Body() data: TestimonialDTO,
-    @UploadedFile() myFile: Express.Multer.File
-  ): Promise<TestimonialEntity> {
-    /*if (myFile == null) {
+  async addTestimonial( @Body() data: TestimonialDTO,@UploadedFile() myFile: Express.Multer.File ): Promise<TestimonialEntity> {
+    if (myFile == null) {
       throw new BadRequestException({
         status: HttpStatus.BAD_REQUEST,
         error: 'Please upload a file',
       });
-    }*/
-
+    }
     try {
-      const testimonial = await this.appService.addTestimonial(data);
+      const testimonial = await this.appService.addTestimonial(data, myFile.filename);
       return testimonial;
     } catch (err) {
       console.log(err);
@@ -100,14 +118,21 @@ export class AppController {
     }
   }
 
-  @Get("/getAllTestimonials")
+  @Get('/image/:id')
+    async getBookImages(@Param('id',ParseIntPipe) id:number, @Res() res) : Promise<any> {
+        return this.appService.getTestImages(id,res);
+  }
+
+  @Get('getAllTestimonials')
   async getAllTestimonials(): Promise<TestimonialEntity[]> {
-    try{
+    try {
       const testimonials = await this.appService.getAllTestimonials();
       return testimonials;
-    }
-    catch(err){
+    } catch (err) {
       console.log(err);
+      throw new InternalServerErrorException('Failed to fetch testimonials.');
     }
   }
+
+  /// TESTIMONIAL END///
 }

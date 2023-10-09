@@ -18,6 +18,8 @@ export class FAQEntity {
     @PrimaryGeneratedColumn()
     id: number;
     @Column()
+    category: string;
+    @Column()
     question: string;
     @Column()
     answer: string;
@@ -36,5 +38,17 @@ export class ContactEntity {
     @Column()
     subject: string;
     @Column()
+    company: string;
+    @Column()
     message: string;
+}
+
+@Entity("users")
+export class UserEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+    @Column()
+    username: string;
+    @Column()
+    password: string;
 }
