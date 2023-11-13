@@ -1,12 +1,12 @@
-import { BadRequestException, Body, Controller, Get, HttpStatus, InternalServerErrorException, NotFoundException, Param, ParseIntPipe, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpStatus, InternalServerErrorException, NotFoundException, Param, ParseIntPipe, Post, Res, UploadedFile, UseGuards, UseInterceptors,  Session } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ContactDTO, FAQDTO, TestimonialDTO } from './app.dto';
+import { ContactDTO, FAQDTO, TestimonialDTO, UserDTO } from './app.dto';
 import { ContactEntity, FAQEntity, TestimonialEntity } from './app.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterError, diskStorage } from 'multer';
 import { Response } from 'express';
-import * as fs from 'fs';
-import * as path from 'path';
+import { SessionGuard } from './session.guard';
+import session = require("express-session") ;
 
 @Controller("api/bpa/admin")
 export class AppController {
@@ -31,6 +31,7 @@ export class AppController {
   }
 
   @Get("/getAllContacts")
+  @UseGuards(SessionGuard)
   async getAllContacts(): Promise<ContactEntity[]> {
     try{
       const contacts = await this.appService.getAllContacts();
@@ -45,6 +46,7 @@ export class AppController {
   /// FAQ START///
 
   @Post("/addFAQ")
+  @UseGuards(SessionGuard)
   async addFAQ(@Body() data:FAQDTO): Promise<FAQEntity> {
     try{
       const FAQ = await this.appService.addFAQ(data);
@@ -81,6 +83,7 @@ export class AppController {
   /// TESTIMONIAL START///
 
   @Post('/addTestimonial')
+  @UseGuards(SessionGuard)
   @UseInterceptors(
     FileInterceptor('image', {
       fileFilter: (req, file, cb) => {
@@ -135,4 +138,83 @@ export class AppController {
   }
 
   /// TESTIMONIAL END///
+  /// USER START///
+
+  @Post("/addUser")
+  async addUser(@Body() data:UserDTO): Promise<any> {
+    try{
+      const user = await this.appService.addUser(data);
+      return user;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
+
+  @Post("/login")
+  async login(@Body() data, @Session() session): Promise<any> {
+    try{
+      const user = await this.appService.login(data);
+      session.email = user.email;
+      console.log(session.email)
+      return user;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
+
+  @Post("/logout")
+  async logout(@Session() session): Promise<any> {
+    try{
+      session.destroy();
+      return "Logged out successfully";
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
+
+  ///User END///
+  /// Career Start///
+
+  @Post("/addCareer")
+  @UseInterceptors(
+    FileInterceptor('resume', {
+      fileFilter: (req, file, cb) => {
+        if (file.originalname.match(/^.*\.(pdf)$/)) cb(null, true);
+        else {
+          cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'resume'), false);
+        }
+      },
+      limits: { fileSize: 10000000 }, // 10 MB
+      storage: diskStorage({
+        destination: './assets/careers',
+        filename: function (req, file, cb) {
+          cb(null, Date.now() + file.originalname);
+        },
+      }),
+    })
+  )
+  async addCareer( @Body() data: any,@UploadedFile() myFile: Express.Multer.File ): Promise<any> {
+    if (myFile == null) {
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Please upload a file',
+      });
+    }
+    try {
+      const career = await this.appService.addCareer(data, myFile.filename);
+      return career;
+    } catch (err) {
+      console.log(err);
+      // Handle the error appropriately
+      throw new BadRequestException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Failed to add career',
+      });
+    }
+  }
+
+  ///Career End///
 }

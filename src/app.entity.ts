@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 
 @Entity("testimonials")
@@ -41,6 +41,21 @@ export class ContactEntity {
     company: string;
     @Column()
     message: string;
+
+    @OneToMany(() => ReplyEntity, (reply) => reply.contact)
+    reply: ReplyEntity[];
+    
+}
+
+@Entity("reply")
+export class ReplyEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+    @Column()
+    message: string;
+
+    @ManyToOne(() => ContactEntity, (contact) => contact.id)
+    contact: ContactEntity;
 }
 
 @Entity("users")
@@ -50,5 +65,30 @@ export class UserEntity {
     @Column()
     username: string;
     @Column()
+    email: string;
+    @Column()
     password: string;
 }
+
+@Entity("career")
+export class CareerEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+    @Column()
+    name: string;
+    @Column()
+    gender: string;
+    @Column()
+    email: string;
+    @Column()
+    phone: string;
+    @Column()
+    nationality: string;
+    @Column()
+    address: string;
+    @Column()
+    resume: string;
+    @Column()
+    coverLetter: string;
+}
+

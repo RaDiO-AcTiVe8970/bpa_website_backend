@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { In, Repository } from 'typeorm';
-import { ContactEntity, FAQEntity, TestimonialEntity } from './app.entity';
+import { CareerEntity, ContactEntity, FAQEntity, ReplyEntity, TestimonialEntity, UserEntity } from './app.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ContactDTO, FAQDTO, TestimonialDTO } from './app.dto';
+import { CareerDTO, ContactDTO, FAQDTO, TestimonialDTO } from './app.dto';
 import { plainToClass } from 'class-transformer';
 import * as fs from 'fs';
 import * as path from 'path'; 
@@ -16,6 +16,12 @@ export class AppService {
     private readonly FAQRepository: Repository<FAQEntity>,
     @InjectRepository(TestimonialEntity)
     private readonly testimonialRepository: Repository<TestimonialEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(ReplyEntity)
+    private readonly replyRepository: Repository<ReplyEntity>,
+    @InjectRepository(CareerEntity)
+    private readonly careerRepository: Repository<CareerEntity>,
   ) {}
 
   getHello(): string {
@@ -39,6 +45,13 @@ export class AppService {
     const testimonial = this.testimonialRepository.create(data);
     console.log(testimonial);
     return this.testimonialRepository.save(testimonial);
+  }
+
+  async addCareer(data: CareerDTO, resume:string): Promise<CareerEntity>{
+    data.resume = resume;
+    const career = this.careerRepository.create(data);
+    console.log(career);
+    return this.careerRepository.save(career);
   }
   
   async getAllContacts(): Promise<ContactEntity[]> {
@@ -87,6 +100,37 @@ export class AppService {
       } else {
         return null;
       }
+  }
+
+  async addUser(data: any): Promise<any> {
+    const user = this.userRepository.create(data);
+    console.log(user);
+    return this.userRepository.save(user);
+  }
+
+  async login(data: any): Promise<UserEntity> {
+    const user = await this.userRepository.findOneBy({email: data.email, password: data.password});
+
+    if(user){
+
+      return user;
+    }
+    else{
+      return null;
+    }
+  }
+
+  async addReply(data: any): Promise<any> {
+    const reply = this.replyRepository.create(data);
+    console.log(reply);
+    return this.replyRepository.save(reply);
+  }
+
+  async replytoContact(data: any): Promise<any> {
+    const reply = await this.addReply(data);
+    const contact = await this.contactRepository.findOneBy({id: data.contact_id});
+    contact.reply = reply;
+    return this.contactRepository.save(contact);
   }
 
 }

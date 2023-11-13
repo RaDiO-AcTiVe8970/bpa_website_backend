@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ContactEntity, FAQEntity, TestimonialEntity, UserEntity } from './app.entity';
+import { CareerEntity, ContactEntity, FAQEntity, ReplyEntity, TestimonialEntity, UserEntity } from './app.entity';
 
 @Module({
   imports: [TypeOrmModule.forRoot(
@@ -13,9 +13,9 @@ import { ContactEntity, FAQEntity, TestimonialEntity, UserEntity } from './app.e
     username: "root",
     password: "",
     database: "bpa",
-    entities:[ContactEntity, FAQEntity, TestimonialEntity, UserEntity],
+    entities:[ContactEntity, FAQEntity, TestimonialEntity, UserEntity, ReplyEntity, CareerEntity],
     synchronize: true,
-  }),TypeOrmModule.forFeature([ContactEntity, FAQEntity, TestimonialEntity, UserEntity])],
+  }),TypeOrmModule.forFeature([ContactEntity, FAQEntity, TestimonialEntity, UserEntity, ReplyEntity, CareerEntity])],
   controllers: [AppController],
   providers: [AppService],
 })
