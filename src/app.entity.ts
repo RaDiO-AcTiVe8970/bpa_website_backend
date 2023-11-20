@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 
 
 @Entity("testimonials")
@@ -74,6 +74,14 @@ export class UserEntity {
 export class CareerEntity {
     @PrimaryGeneratedColumn()
     id: number;
+    @PrimaryColumn()
+    nid:string;
+    @Column()
+    mothername:string;
+    @Column()
+    DOB:string;
+    @Column()
+    appDate:string;
     @Column()
     name: string;
     @Column()
@@ -90,5 +98,14 @@ export class CareerEntity {
     resume: string;
     @Column()
     coverLetter: string;
+    @Column()
+    designation: string;
 }
 
+@Entity("applicant")
+export class ApplicantEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+    @Column()
+    nid: string;
+}

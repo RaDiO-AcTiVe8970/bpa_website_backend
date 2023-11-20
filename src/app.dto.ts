@@ -16,6 +16,11 @@ export class CareerDTO {
     address: string;
     resume: string;
     coverLetter: string;
+    nid:string;
+    mothername:string;
+    DOB:string;
+    appDate:string;
+    designation:string;
 }
 
 

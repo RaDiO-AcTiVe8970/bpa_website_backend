@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, HttpStatus, InternalServerErrorException, NotFoundException, Param, ParseIntPipe, Post, Res, UploadedFile, UseGuards, UseInterceptors,  Session } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpStatus, InternalServerErrorException, NotFoundException, Param, ParseIntPipe, Post, Res, UploadedFile, UseGuards, UseInterceptors,  Session, ConflictException } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ContactDTO, FAQDTO, TestimonialDTO, UserDTO } from './app.dto';
 import { ContactEntity, FAQEntity, TestimonialEntity } from './app.entity';
@@ -196,25 +196,34 @@ export class AppController {
       }),
     })
   )
-  async addCareer( @Body() data: any,@UploadedFile() myFile: Express.Multer.File ): Promise<any> {
+  async addCareer(@Body() data: any, @UploadedFile() myFile: Express.Multer.File): Promise<any> {
     if (myFile == null) {
-      throw new BadRequestException({
-        status: HttpStatus.BAD_REQUEST,
-        error: 'Please upload a file',
-      });
+        throw new BadRequestException({
+            status: HttpStatus.BAD_REQUEST,
+            error: 'Please upload a file',
+        });
     }
+
     try {
-      const career = await this.appService.addCareer(data, myFile.filename);
-      return career;
+        const career = await this.appService.addCareer(data, myFile.filename);
+
+        if (career) {
+            return "Career Added Successfully";
+        } else {
+            throw new ConflictException({
+                status: HttpStatus.CONFLICT,
+                error: 'Career Already Exists',
+            });
+        }
     } catch (err) {
-      console.log(err);
-      // Handle the error appropriately
-      throw new BadRequestException({
-        status: HttpStatus.BAD_REQUEST,
-        error: 'Failed to add career',
-      });
+        console.log(err);
+        // Handle the error appropriately
+        throw new BadRequestException({
+            status: HttpStatus.BAD_REQUEST,
+            error: 'Failed to add career',
+        });
     }
-  }
+}
 
   ///Career End///
 }

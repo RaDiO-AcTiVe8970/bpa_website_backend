@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { In, Repository } from 'typeorm';
-import { CareerEntity, ContactEntity, FAQEntity, ReplyEntity, TestimonialEntity, UserEntity } from './app.entity';
+import { ApplicantEntity, CareerEntity, ContactEntity, FAQEntity, ReplyEntity, TestimonialEntity, UserEntity } from './app.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CareerDTO, ContactDTO, FAQDTO, TestimonialDTO } from './app.dto';
 import { plainToClass } from 'class-transformer';
@@ -22,6 +22,8 @@ export class AppService {
     private readonly replyRepository: Repository<ReplyEntity>,
     @InjectRepository(CareerEntity)
     private readonly careerRepository: Repository<CareerEntity>,
+    @InjectRepository(ApplicantEntity)
+    private readonly applicantRepository: Repository<ApplicantEntity>,
   ) {}
 
   getHello(): string {
@@ -47,12 +49,24 @@ export class AppService {
     return this.testimonialRepository.save(testimonial);
   }
 
-  async addCareer(data: CareerDTO, resume:string): Promise<CareerEntity>{
+  async addCareer(data: CareerDTO, resume: string): Promise<CareerEntity> {
     data.resume = resume;
-    const career = this.careerRepository.create(data);
-    console.log(career);
-    return this.careerRepository.save(career);
+    const check = await this.applicantRepository.findOneBy({ nid: data.nid });
+  
+    if (check) {
+      return null;
+    } else {
+      const applicant = this.applicantRepository.create(data);
+      const career = this.careerRepository.create(data);
+
+      console.log(applicant);
+      console.log(career);
+
+      await this.applicantRepository.save(applicant);
+      return this.careerRepository.save(career);
   }
+  }
+  
   
   async getAllContacts(): Promise<ContactEntity[]> {
     return this.contactRepository.find();
