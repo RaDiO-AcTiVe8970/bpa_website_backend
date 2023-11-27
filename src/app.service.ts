@@ -147,4 +147,7 @@ export class AppService {
     return this.contactRepository.save(contact);
   }
 
+  async getAllCareers(): Promise<CareerEntity[]> {
+    return await this.careerRepository.find();
+  }
 }

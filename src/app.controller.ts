@@ -223,7 +223,22 @@ export class AppController {
             error: 'Failed to add career',
         });
     }
-}
+  }
+  @Get("/getAllCareers")
+  @UseGuards(SessionGuard)
+  async getAllCareers(): Promise<any[]> {
+    try{
+      const careers = await this.appService.getAllCareers();
+      return careers;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
 
+  @Get('/resumes/:filename')
+  async getResume(@Param('filename') filename: string, @Res() res: Response) {
+    return res.sendFile(filename, { root: 'assets/careers', headers: { 'Content-Type': 'application/pdf' } });
+  }
   ///Career End///
 }
