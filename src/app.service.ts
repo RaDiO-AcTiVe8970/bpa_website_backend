@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { In, Repository } from 'typeorm';
+import { In, LessThan, Repository } from 'typeorm';
 import { ApplicantEntity, CareerEntity, ContactEntity, FAQEntity, ReplyEntity, TestimonialEntity, UserEntity } from './app.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CareerDTO, ContactDTO, FAQDTO, TestimonialDTO } from './app.dto';
 import { plainToClass } from 'class-transformer';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import * as fs from 'fs';
 import * as path from 'path'; 
 
@@ -29,6 +30,16 @@ export class AppService {
   getHello(): string {
     return 'Hello World!';
   }
+  ///Career DB auto clean up//
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT) // Run every day
+  async clearOldData() {
+    const monthsAgo = new Date();
+    monthsAgo.setMonth(monthsAgo.getMonth() - 3);
+
+    // Delete careers older than three months
+    await this.careerRepository.delete({ appDate: LessThan(monthsAgo)});
+  }
+  ///END///
 
   async addContact(data: ContactDTO): Promise<ContactEntity> {
     const contact = this.contactRepository.create(data);
@@ -54,7 +65,8 @@ export class AppService {
     const check = await this.applicantRepository.findOneBy({ nid: data.nid });
   
     if (check) {
-      return null;
+      const career=this.careerRepository.create(data);
+      return this.careerRepository.save(career);
     } else {
       const applicant = this.applicantRepository.create(data);
       const career = this.careerRepository.create(data);
@@ -149,5 +161,32 @@ export class AppService {
 
   async getAllCareers(): Promise<CareerEntity[]> {
     return await this.careerRepository.find();
+  }
+  async deleteApplication(id: string): Promise<void> {
+    try {
+      // Your logic to delete the application by ID
+      await this.careerRepository.delete(id);
+    } catch (error) {
+      throw new Error(`Error deleting application: ${error.message}`);
+    }
+  }
+
+  ///Search///
+  async search(query: string): Promise<any[]> {
+    const careers = await this.careerRepository.find({
+      where: [
+        { name: In([query]) },
+        { email: In([query]) },
+        { nid: In([query]) },
+        { phone: In([query]) },
+        { address: In([query]) },
+        { qualification: In([query]) },
+        { experience: In([query]) },
+        { skills: In([query]) },
+        { position: In([query]) },
+        { appDate: In([query]) },
+      ],
+    });
+    return careers;
   }
 }

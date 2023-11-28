@@ -74,14 +74,14 @@ export class UserEntity {
 export class CareerEntity {
     @PrimaryGeneratedColumn()
     id: number;
-    @PrimaryColumn()
+    @Column()
     nid:string;
     @Column()
     mothername:string;
     @Column()
     DOB:string;
-    @Column()
-    appDate:string;
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    appDate: Date;
     @Column()
     name: string;
     @Column()
@@ -108,4 +108,6 @@ export class ApplicantEntity {
     id: number;
     @Column()
     nid: string;
+    @Column()
+    empStat: string;
 }

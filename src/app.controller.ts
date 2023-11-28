@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, HttpStatus, InternalServerErrorException, NotFoundException, Param, ParseIntPipe, Post, Res, UploadedFile, UseGuards, UseInterceptors,  Session, ConflictException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpStatus, InternalServerErrorException, NotFoundException, Param, ParseIntPipe, Post, Res, UploadedFile, UseGuards, UseInterceptors,  Session, ConflictException, Delete } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ContactDTO, FAQDTO, TestimonialDTO, UserDTO } from './app.dto';
 import { ContactEntity, FAQEntity, TestimonialEntity } from './app.entity';
@@ -240,5 +240,27 @@ export class AppController {
   async getResume(@Param('filename') filename: string, @Res() res: Response) {
     return res.sendFile(filename, { root: 'assets/careers', headers: { 'Content-Type': 'application/pdf' } });
   }
+
+  @Delete('/deleteCareer/:id')
+  async deleteApplication(@Param('id') id: string) {
+    try {
+      await this.appService.deleteApplication(id);
+      return { message: 'Application deleted successfully' };
+    } catch (error) {
+      throw new Error(`Error deleting application: ${error.message}`);
+    }
+  }
   ///Career End///
+  ///Search Start///
+
+  @Get("/search/:query")
+  async search(@Param('query') query: string): Promise<any[]> {
+    try{
+      const results = await this.appService.search(query);
+      return results;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
 }

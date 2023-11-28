@@ -4,9 +4,11 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApplicantEntity, CareerEntity, ContactEntity, FAQEntity, ReplyEntity, TestimonialEntity, UserEntity } from './app.entity';
 import { ApplicationConfig } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(
+  imports: [ ScheduleModule.forRoot(),
+  TypeOrmModule.forRoot(
   {
     type: 'mysql',
     host: "localhost",
